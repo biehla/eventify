@@ -25,6 +25,7 @@ type Event interface {
 	GetCapacity() int64
 	GetBookings() int64
 	GetSponsored() bool
+	GetPercentBooked() string
 	GetTags() string
 	ToString() string
 }
@@ -63,6 +64,10 @@ func (event BaseEvent) GetTags() string {
 
 func (event BaseEvent) GetSponsored() bool {
 	return event.Sponsored
+}
+
+func (event BaseEvent) GetPercentBooked() string {
+	return fmt.Sprintf("%.2f%%", (float64(event.Bookings)/float64(event.Capacity))*100)
 }
 
 func (event BaseEvent) ToString() string {

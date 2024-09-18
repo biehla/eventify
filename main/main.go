@@ -17,15 +17,21 @@ func main() {
 		PassLocalsToViews: true,
 	})
 
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.Redirect("/booking/2")
+	})
+
 	app.Get("/booking/:bookingId", func(c *fiber.Ctx) error {
 		if c.Params("bookingId") != "" {
 			bookingId, err := strconv.ParseInt(c.Params("bookingId"), 10, 64)
 			if err != nil {
 				return c.SendString("Invalid booking ID")
 			}
-			// return views.GetBooking(bookingId).Render(c, fiber.AcquireResponse().BodyWriter())
-			booking := views.GetBooking(bookingId)
-			handler := adaptor.HTTPHandler(templ.Handler(booking))
+
+			booking := database.GetBooking(bookingId)
+			view := views.GetBooking(booking)
+			handler := adaptor.HTTPHandler(templ.Handler(view))
+
 			return handler(c)
 		}
 		return c.SendString("Invalid booking ID")
@@ -38,8 +44,10 @@ func main() {
 				return c.SendString("Invalid booking ID")
 			}
 			// return views.GetBooking(eventId).Render(c, fiber.AcquireResponse().BodyWriter())
-			event := views.GetEvent(eventId)
-			handler := adaptor.HTTPHandler(templ.Handler(event))
+			event := database.GetEvent(eventId)
+			view := views.GetEvent(event)
+			handler := adaptor.HTTPHandler(templ.Handler(view))
+
 			return handler(c)
 		}
 		return c.SendString("Invalid booking ID")
