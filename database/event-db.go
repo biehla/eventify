@@ -5,10 +5,18 @@ import (
 	"eventify/models"
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
 )
 
-var events = make([]models.Event, 0, 300)
+type eventsArray []models.Event
+
+var events = make(eventsArray, 0, 300)
+
+type EventsDB interface {
+	GetEvent(id int) models.Event
+	SetEvent(id int, event models.Event) bool
+}
 
 func setupEventDB(filename string) {
 	type field int
@@ -40,7 +48,12 @@ func setupEventDB(filename string) {
 		fmt.Println("Error opening file: ", err)
 		return
 	}
-	defer fileHandle.Close()
+	defer func(fileHandle *os.File) {
+		err := fileHandle.Close()
+		if err != nil {
+			fmt.Println("Error closing file: ", err)
+		}
+	}(fileHandle)
 
 	CSVReader := csv.NewReader(fileHandle)
 	eventsArr, err := CSVReader.ReadAll()
@@ -69,15 +82,51 @@ func setupEventDB(filename string) {
 			fmt.Printf("Error parsing %s integer: %s\n", fieldName[SPONSORED], err)
 		}
 
-		newEvent := new(models.Event)
+		re, err := regexp.Compile(`(\w*)\s\((\d*\.\d*).*?,\s(\d*\.\d*)`)
+		if err != nil {
+			fmt.Println("Error compiling regex: ", err)
+			panic(err)
+		}
+
+		matches := re.FindStringSubmatch(event[LOCATION])
+		if len(matches) < 3 {
+			fmt.Println("Error parsing location: ", err)
+			continue
+		}
+		latitude, err := strconv.ParseFloat(matches[2], 64)
+		if err != nil {
+			fmt.Println("Error parsing latitude: ", err)
+			panic(err)
+		}
+
+		longitude, err := strconv.ParseFloat(matches[3], 64)
+		if err != nil {
+			fmt.Println("Error parsing longitude: ", err)
+			panic(err)
+		}
+
+		coordinates := []float64{latitude, longitude}
+
+		newEvent := new(models.BaseEvent)
 		newEvent.Id = int64(eventID)
 		newEvent.Title = event[TITLE]
 		newEvent.Subtitle = event[SUBTITLE]
+		//newEvent.LocationName = matches[0]
+		newEvent.LocationCoords = coordinates
 		newEvent.Capacity = capacity
 		newEvent.Bookings = bookings
 		newEvent.Sponsored = sponsored
 		newEvent.Tags = event[TAGS]
 
-		events = append(events, *newEvent)
+		events = append(events, newEvent)
 	}
+}
+
+func (events eventsArray) GetEvent(id int64) models.Event {
+	return events[id]
+}
+
+func (events eventsArray) SetEvent(id int, newEvent models.Event) bool {
+	events[id] = newEvent
+	return true // TODO: at some point make this do some validation or write a validation function
 }

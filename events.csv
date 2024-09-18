@@ -12,7 +12,7 @@ id,title,subtitle,location,capacity,bookings,sponsored,tags
 11,Craft Fair,Shop from local artisans,"Toronto (43.651070° N, 79.347015° W)",417,302,FALSE,"Blockchain, Environment, Sustainability, Logistics, AI"
 12,Picnic in the Park,Relax and dine in nature,"Hamilton (43.255721° N, 79.871102° W)",495,244,FALSE,"Operations, Data Science"
 13,Yoga Retreat,A day of relaxation,"Niagara Falls (43.089558° N, 79.084944° W)",217,61,TRUE,"Operations, Data Science, Technology, Leadership, AI"
-14,City Tour,Wander through the city,"Kitchener (43.451639° N, 80.492533° W)",223,215,TRUE,"Supply Chain, Leadership"
+14,City Tour,Wander through the city,"Kitchener (44.451639° N, 80.492533° W)",223,215,TRUE,"Supply Chain, Leadership"
 15,Wine Tasting,A tour of local vineyards,"Kingston (44.231172° N, 76.485954° W)",54,18,TRUE,"Leadership, Social Impact"
 16,Cooking Class,Cook like a pro,"Kitchener (43.451639° N, 80.492533° W)",170,47,TRUE,"Leadership, Sustainability, AI, Supply Chain, Data Science"
 17,Craft Fair,Shop from local artisans,"Brampton (43.731547° N, 79.762418° W)",119,88,TRUE,"Innovation, Leadership, Blockchain, Environment, Social Impact"

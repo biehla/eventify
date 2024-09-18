@@ -2,6 +2,8 @@ package main
 
 import (
 	"eventify/database"
+	"eventify/models"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -18,5 +20,15 @@ func main() {
 
 	database.SetupDB()
 
-	app.Listen(":3000")
+	var booking models.Booking
+	fmt.Println(database.GetBooking(17).ToString())
+	fmt.Println()
+	booking = database.GetBooking(17)
+	eventID := booking.GetEventIds()
+	event := database.GetEvent(eventID[0])
+	fmt.Println(event.ToString())
+	err := app.Listen(":3000")
+	if err != nil {
+		return
+	}
 }

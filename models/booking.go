@@ -1,5 +1,10 @@
 package models
 
+import (
+	"fmt"
+	"strings"
+)
+
 type bookingType int64
 
 const (
@@ -12,79 +17,77 @@ var BookingType = map[bookingType]string{
 	BUNDLED_BOOKING: "bundledEvent",
 }
 
-type baseBooking struct {
+type booking struct {
 	Id              int64       `json:"Id"`
 	UserIdPublicKey int64       `json:"UserIdPublicKey"`
 	GroupSize       int64       `json:"GroupSize"`
 	BookingType     bookingType `json:"BookingType"`
-}
-
-type EventBooking struct {
-	*baseBooking
-	EventId int64 `json:"EventId"`
-}
-
-type BundledBooking struct {
-	*baseBooking
-	EventIds []int64 `json:"EventIds"`
+	EventIds        []int64     `json:"EventIds"`
 }
 
 type Booking interface {
 	GetId() int64
-	GetEventIds() []int64
 	GetGroupSize() int64
 	GetUserID() int64
-	GetBookingType() bookingType
+	GetBookingType() string
+	ToString() string
+	GetEventIds() []int64
 }
 
-func (booking baseBooking) GetId() int64 {
+func (booking booking) GetId() int64 {
 	return booking.Id
 }
 
-func (booking baseBooking) GetGroupSize() int64 {
+func (booking booking) GetGroupSize() int64 {
 	return booking.GroupSize
 }
 
-func (booking baseBooking) GetUserID() int64 {
+func (booking booking) GetUserID() int64 {
 	return booking.UserIdPublicKey
 }
 
-func (booking baseBooking) GetBookingType() bookingType {
-	switch booking.BookingType {
-	case EVENT_BOOKING:
-		return EVENT_BOOKING
-	case BUNDLED_BOOKING:
-		return BUNDLED_BOOKING
-	}
-	return -1
+func (booking booking) GetBookingType() string {
+	return BookingType[booking.BookingType]
 }
 
-func InitEventBooking(Id int64, UserIdPublicKey int64, GroupSize int64, EventId int64) EventBooking {
-	booking := new(EventBooking)
+func (booking booking) ToString() string {
+	eventBuilder := new(strings.Builder)
+	var eventsLabel string
+
+	if booking.GetBookingType() == BookingType[BUNDLED_BOOKING] {
+		eventBuilder.WriteString("[")
+		for _, id := range booking.GetEventIds() {
+			str := fmt.Sprintf("%d, ", id)
+			eventBuilder.WriteString(str)
+		}
+		eventBuilder.WriteString("]")
+		eventsLabel = "Events"
+	} else {
+		eventBuilder.WriteString(fmt.Sprintf("%d", booking.GetEventIds()))
+		eventsLabel = "Event"
+	}
+
+	return fmt.Sprintf(
+		"Booking %d \n============== \nUser ID PubKey: %d \nGroup Size: %d\nBooking Type: %s \n%s: %s",
+		booking.GetId(),
+		booking.GetUserID(),
+		booking.GetGroupSize(),
+		booking.GetBookingType(),
+		eventsLabel,
+		eventBuilder.String(),
+	)
+}
+
+func InitBooking(Id int64, UserIdPublicKey int64, GroupSize int64, bookingType bookingType, EventIds []int64) booking {
+	booking := new(booking)
 	booking.Id = Id
 	booking.UserIdPublicKey = UserIdPublicKey
 	booking.GroupSize = GroupSize
-	booking.BookingType = EVENT_BOOKING
-	booking.EventId = EventId
-	return *booking
-}
-
-func InitBundledBooking(Id int64, UserIdPublicKey int64, GroupSize int64, EventIds []int64) BundledBooking {
-	booking := new(BundledBooking)
-	booking.Id = 1 // Should be Id TODO: Switch back
-	booking.UserIdPublicKey = UserIdPublicKey
-	booking.GroupSize = GroupSize
-	booking.BookingType = EVENT_BOOKING
+	booking.BookingType = bookingType
 	booking.EventIds = EventIds
 	return *booking
 }
 
-func (booking EventBooking) GetEventIds() []int64 {
-	var EventId = make([]int64, 0, 1)
-	EventId = append(EventId, booking.EventId)
-	return EventId
-}
-
-func (booking BundledBooking) GetEventIds() []int64 {
+func (booking booking) GetEventIds() []int64 {
 	return booking.EventIds
 }
