@@ -1,0 +1,170 @@
+package views
+
+
+import "eventify/database"
+import "strings"
+import "fmt"
+
+
+templ GetBooking(bookingId int64) {
+    <!DOCTYPE html>
+    <html lang="en">
+
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <script src="https://cdn.tailwindcss.com"></script>
+        <title>Search | Booking {fmt.Sprint(bookingId)}</title>
+    </head>
+
+    <body class="bg-gray-100 flex items-center justify-center min-h-screen">
+        @formatBooking(bookingId)
+    </body>
+
+    </html>
+}
+
+templ formatBooking(bookingId int64) {
+    <div class="bg-white shadow-lg rounded-lg p-8 w-full max-w-lg">
+        <h1 class="text-2xl font-bold mb-6">Booking Details</h1>
+        <div class="space-y-4">
+            <div class="flex justify-between">
+                <span class="text-gray-600 font-medium">ID:</span>
+                <span class="text-gray-800">{fmt.Sprint(bookingId)}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600 font-medium">User ID Public Key:</span>
+                <span class="text-gray-800">{fmt.Sprint(database.GetBooking(bookingId).GetUserID())}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600 font-medium">Group Size:</span>
+                <span class="text-gray-800">{fmt.Sprint(database.GetBooking(bookingId).GetGroupSize())}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600 font-medium">Booking Type:</span>
+                <span class="text-gray-800">{fmt.Sprint(database.GetBooking(bookingId).GetBookingType())}</span>
+            </div>
+            <div>
+                <span class="text-gray-600 font-medium">Event IDs:</span>
+                <ul class="list-disc list-inside text-gray-800 mt-2">
+                    for _, item := range database.GetBooking(bookingId).GetEventIds() {
+                    <li>{fmt.Sprint(item)}</li>
+                    }
+                </ul>
+            </div>
+        </div>
+        <div class="mt-8 flex justify-end">
+            <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Edit Booking</button>
+        </div>
+    </div>
+}
+
+
+
+
+templ GetEvent(eventId int64) {
+    <!DOCTYPE html>
+    <html lang="en">
+
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <script src="https://cdn.tailwindcss.com"></script>
+        <title>Search | Booking {fmt.Sprint(eventId)}</title>
+    </head>
+
+    <body class="bg-gray-100 flex items-center justify-center min-h-screen">
+        @formatEvent(eventId)
+    </body>
+
+    </html>
+}
+
+templ formatEvent(eventId int64) {
+    <div class="bg-white shadow-lg rounded-lg p-8 w-full max-w-lg">
+        <h1 class="text-2xl font-bold mb-6">{fmt.Sprint(database.GetEvent(eventId).GetTitle())}</h1>
+        <h2 class="text-2xl font-italic mb-6">{fmt.Sprint(database.GetEvent(eventId).GetSubtitle())}</h2>
+        <div class="space-y-4">
+            <div class="flex justify-between">
+                <span class="text-gray-600 font-medium">Location Name:</span>
+                <span class="text-gray-800">{fmt.Sprint(database.GetEvent(eventId).GetLocationName())}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600 font-medium">Coordinates:</span>
+                <span class="text-gray-800">({fmt.Sprint(database.GetEvent(eventId).GetLocationCoords()[0])},
+                    {fmt.Sprint(database.GetEvent(eventId).GetLocationCoords()[1])})</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600 font-medium">Bookings:</span>
+                <span class="text-gray-800">{fmt.Sprint(database.GetEvent(eventId).GetBookings())} /
+                    {fmt.Sprint(database.GetEvent(eventId).GetCapacity())}</span>
+            </div>
+            <!-- Progress Bar for Bookings -->
+            <div class="flex items-center">
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div class="bg-blue-600 h-2.5 rounded-full" style="{{mul (div .Bookings .Capacity) 100}}%">
+                    </div>
+                </div>
+                <span class="ml-2 text-sm text-gray-600"></span>
+            </div>
+            <!-- Sponsored Badge -->
+            if database.GetEvent(eventId).GetSponsored() {
+                <div class="flex justify-between">
+                    <span class="text-gray-600 font-medium">Sponsored:</span>
+                    <span class="text-gray-800">Yes</span>
+                </div>
+            }
+            <div class="flex justify-between">
+                <span class="font-semibold text-gray-600">Tags:</span>
+            </div>
+            <div class="flex justify-between">
+                for _, tag := range strings.Split(database.GetEvent(eventId).GetTags(), ",") {
+                    <span class="bg-gray-200 text-gray-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">{tag}</span>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+
+/* {
+<div class="bg-white shadow-lg rounded-lg p-8 w-full max-w-lg">
+    <div class="mb-4">
+        <h2 class="text-2xl font-bold text-gray-800">{database.GetEvent(eventId).GetTitle()}</h2>
+        <p class="text-gray-600">{database.GetEvent(eventId).GetSubtitle()}</p>
+    </div>
+    <div class="mb-4">
+        <p class="text-gray-600">
+            <span class="font-semibold">Location:</span> {database.GetEvent(eventId).GetLocationName()}
+        </p>
+        <p class="text-gray-600">
+            <span class="font-semibold">Coordinates:</span>
+            ({fmt.Sprint(database.GetEvent(eventId).GetLocationCoords()[0])},
+            {fmt.Sprint(database.GetEvent(eventId).GetLocationCoords()[1])})
+        </p>
+    </div>
+    <div class="mb-4">
+        <div class="flex items-center">
+            <span class="text-gray-600 mr-2">Bookings:</span>
+            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{mul (div .Bookings .Capacity) 100}}%"></div>
+            </div>
+            <span class="ml-2 text-sm text-gray-600">{fmt.Sprint(database.GetEvent(eventId).GetBookings())} /
+                {fmt.Sprint(database.GetEvent(eventId).GetCapacity())}</span>
+        </div>
+    </div>
+    if database.GetEvent(eventId).GetSponsored() {
+    <div class="mb-4">
+        <span class="bg-yellow-200 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded">Sponsored</span>
+    </div>
+    }
+    <div class="mb-4">
+        <span class="font-semibold text-gray-600">Tags:</span>
+        for _, tag := range strings.Split(database.GetEvent(eventId).GetTags(), ";") {
+        <span class="bg-gray-200 text-gray-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">{tag}</span>
+        }
+    </div>
+</div>
+} */

@@ -2,13 +2,11 @@ module eventify
 
 go 1.23
 
-require (
-	github.com/gofiber/fiber/v2 v2.52.5 //direct
-	golang.org/x/text v0.13.0
-)
+require github.com/gofiber/fiber/v2 v2.52.5
 
 require (
-	github.com/andybalholm/brotli v1.0.5 // indirect
+	github.com/a-h/templ v0.2.778 // direct
+	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/google/uuid v1.5.0 // indirect
 	github.com/klauspost/compress v1.17.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
@@ -18,5 +16,5 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.51.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/sys v0.23.0 // indirect
 )

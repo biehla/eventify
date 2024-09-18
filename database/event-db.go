@@ -111,7 +111,7 @@ func setupEventDB(filename string) {
 		newEvent.Id = int64(eventID)
 		newEvent.Title = event[TITLE]
 		newEvent.Subtitle = event[SUBTITLE]
-		//newEvent.LocationName = matches[0]
+		newEvent.LocationName = matches[1]
 		newEvent.LocationCoords = coordinates
 		newEvent.Capacity = capacity
 		newEvent.Bookings = bookings
