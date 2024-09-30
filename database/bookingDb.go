@@ -5,6 +5,7 @@ import (
 	"eventify/models"
 	"fmt"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -16,6 +17,7 @@ var bookings = make(bookingArray, 0, 300)
 type BookingDB interface {
 	GetBooking(id int) models.Booking
 	SetBooking(id int, booking models.Booking) bool
+	DeleteBooking(id int) bool
 }
 
 func setupBookingDB(filename string) {
@@ -114,4 +116,10 @@ func (bookings bookingArray) GetBooking(id int64) models.Booking {
 func (bookings bookingArray) SetBooking(id int, newBooking models.Booking) bool {
 	bookings[id] = newBooking
 	return true // TODO: at some point make this do some validation or write a validation function
+}
+
+func (bookings bookingArray) DeleteBooking(id int) models.Booking {
+	deletedBooking := bookings[id]
+	bookings = slices.Delete(bookings, id, id+1)
+	return deletedBooking
 }

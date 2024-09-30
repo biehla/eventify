@@ -23,6 +23,10 @@ func SetBooking(booking models.Booking) bool {
 	return bookings.SetBooking(int(booking.GetId()), booking)
 }
 
+func DeleteBooking(id int64) models.Booking {
+	return bookings.DeleteBooking(int(id))
+}
+
 func SetupDB() {
 	setupEventDB(EVENT_FILE)
 	setupBookingDB(BOOKING_FILE)

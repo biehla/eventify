@@ -2,8 +2,10 @@ package main
 
 import (
 	"eventify/database"
+	"eventify/models"
 	"eventify/views"
 
+	"slices"
 	"strconv"
 
 	"github.com/a-h/templ"
@@ -17,8 +19,12 @@ func main() {
 		PassLocalsToViews: true,
 	})
 
+	app.Static("/", "/static")
+
 	app.Get("/", func(c *fiber.Ctx) error {
-		return c.Redirect("/booking/2")
+		view := views.GetOuterHtml[models.Booking](database.GetBooking(2), "Home")
+		handler := adaptor.HTTPHandler(templ.Handler(view))
+		return handler(c)
 	})
 
 	app.Get("/booking/:bookingId", func(c *fiber.Ctx) error {
@@ -29,7 +35,14 @@ func main() {
 			}
 
 			booking := database.GetBooking(bookingId)
-			view := views.GetBooking(booking)
+			var view templ.Component
+			if c.Context().Referer() != nil {
+				view = views.GetOuterHtml[models.Booking](booking, "Event: "+c.Params("bookingId"))
+			} else if slices.Equal(c.Context().Referer(), []byte("/")) {
+
+			} else {
+				view = views.FormatBooking(booking)
+			}
 			handler := adaptor.HTTPHandler(templ.Handler(view))
 
 			return handler(c)
@@ -43,12 +56,30 @@ func main() {
 			if err != nil {
 				return c.SendString("Invalid booking ID")
 			}
-			// return views.GetBooking(eventId).Render(c, fiber.AcquireResponse().BodyWriter())
 			event := database.GetEvent(eventId)
-			view := views.GetEvent(event)
+			var view templ.Component
+			if c.Context().Referer() != nil {
+				view = views.FormatEvent(event)
+			} else {
+				view = views.GetOuterHtml[models.Event](event, "Event: "+c.Params("eventId"))
+			}
 			handler := adaptor.HTTPHandler(templ.Handler(view))
 
 			return handler(c)
+		}
+		return c.SendString("Invalid booking ID")
+	})
+
+	app.Delete("/booking/:bookingId", func(c *fiber.Ctx) error {
+		if c.Params("bookingId") != "" {
+			bookingId, err := strconv.ParseInt(c.Params("bookingId"), 10, 64)
+			if err != nil {
+				return c.SendString("Invalid booking ID")
+			}
+
+			database.DeleteBooking(bookingId)
+
+			return c.SendString("Booking deleted")
 		}
 		return c.SendString("Invalid booking ID")
 	})

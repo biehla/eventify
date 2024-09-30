@@ -7,6 +7,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"sync"
 )
 
 type eventsArray []models.Event
@@ -62,64 +63,81 @@ func setupEventDB(filename string) {
 		return
 	}
 
-	for eventID, event := range eventsArr {
-		if eventID == 0 {
-			continue
-		}
-
-		capacity, err := strconv.ParseInt(event[CAPACITY], 10, 64)
-		if err != nil {
-			fmt.Printf("Error parsing %s integer: %s\n", fieldName[CAPACITY], err)
-		}
-
-		bookings, err := strconv.ParseInt(event[BOOKINGS], 10, 64)
-		if err != nil {
-			fmt.Printf("Error parsing %s integer: %s\n", fieldName[BOOKINGS], err)
-		}
-
-		sponsored, err := strconv.ParseBool(event[SPONSORED])
-		if err != nil {
-			fmt.Printf("Error parsing %s integer: %s\n", fieldName[SPONSORED], err)
-		}
-
-		re, err := regexp.Compile(`(\w*)\s\((\d*\.\d*).*?,\s(\d*\.\d*)`)
-		if err != nil {
-			fmt.Println("Error compiling regex: ", err)
-			panic(err)
-		}
-
-		matches := re.FindStringSubmatch(event[LOCATION])
-		if len(matches) < 3 {
-			fmt.Println("Error parsing location: ", err)
-			continue
-		}
-		latitude, err := strconv.ParseFloat(matches[2], 64)
-		if err != nil {
-			fmt.Println("Error parsing latitude: ", err)
-			panic(err)
-		}
-
-		longitude, err := strconv.ParseFloat(matches[3], 64)
-		if err != nil {
-			fmt.Println("Error parsing longitude: ", err)
-			panic(err)
-		}
-
-		coordinates := []float64{latitude, longitude}
-
-		newEvent := new(models.BaseEvent)
-		newEvent.Id = int64(eventID)
-		newEvent.Title = event[TITLE]
-		newEvent.Subtitle = event[SUBTITLE]
-		newEvent.LocationName = matches[1]
-		newEvent.LocationCoords = coordinates
-		newEvent.Capacity = capacity
-		newEvent.Bookings = bookings
-		newEvent.Sponsored = sponsored
-		newEvent.Tags = event[TAGS]
-
-		events = append(events, newEvent)
+	re, err := regexp.Compile(`(\w*)\s\((\d*\.\d*).*?,\s(\d*\.\d*)`)
+	if err != nil {
+		fmt.Println("Error compiling regex: ", err)
+		panic(err)
 	}
+
+	waitGroup := sync.WaitGroup{}
+	channel := make(chan models.Event)
+
+	for eventID, event := range eventsArr {
+		waitGroup.Add(1)
+
+		go func() {
+			defer waitGroup.Done()
+			if eventID == 0 {
+				return
+			}
+
+			capacity, err := strconv.ParseInt(event[CAPACITY], 10, 64)
+			if err != nil {
+				fmt.Printf("Error parsing %s integer: %s\n", fieldName[CAPACITY], err)
+			}
+
+			bookings, err := strconv.ParseInt(event[BOOKINGS], 10, 64)
+			if err != nil {
+				fmt.Printf("Error parsing %s integer: %s\n", fieldName[BOOKINGS], err)
+			}
+
+			sponsored, err := strconv.ParseBool(event[SPONSORED])
+			if err != nil {
+				fmt.Printf("Error parsing %s integer: %s\n", fieldName[SPONSORED], err)
+			}
+
+			matches := re.FindStringSubmatch(event[LOCATION])
+			if len(matches) < 3 {
+				fmt.Println("Error parsing location: ", err)
+				return
+			}
+
+			latitude, err := strconv.ParseFloat(matches[2], 64)
+			if err != nil {
+				fmt.Println("Error parsing latitude: ", err)
+				panic(err)
+			}
+
+			longitude, err := strconv.ParseFloat(matches[3], 64)
+			if err != nil {
+				fmt.Println("Error parsing longitude: ", err)
+				panic(err)
+			}
+
+			newEvent := new(models.BaseEvent)
+			newEvent.Id = int64(eventID)
+			newEvent.Title = event[TITLE]
+			newEvent.Subtitle = event[SUBTITLE]
+			newEvent.Tags = event[TAGS]
+			newEvent.Capacity = capacity
+			newEvent.LocationName = matches[1]
+			newEvent.LocationCoords = []float64{latitude, longitude}
+			newEvent.Bookings = bookings
+			newEvent.Sponsored = sponsored
+
+			channel <- newEvent
+		}()
+	}
+
+	go func() {
+		waitGroup.Wait()
+		close(channel)
+	}()
+
+	for event := range channel {
+		events = append(events, event)
+	}
+
 }
 
 func (events eventsArray) GetEvent(id int64) models.Event {

@@ -17,7 +17,7 @@ var BookingType = map[bookingType]string{
 	BUNDLED_BOOKING: "bundledEvent",
 }
 
-type booking struct {
+type BaseBooking struct {
 	Id              int64       `json:"Id"`
 	UserIdPublicKey int64       `json:"UserIdPublicKey"`
 	GroupSize       int64       `json:"GroupSize"`
@@ -34,23 +34,23 @@ type Booking interface {
 	GetEventIds() []int64
 }
 
-func (booking booking) GetId() int64 {
+func (booking BaseBooking) GetId() int64 {
 	return booking.Id
 }
 
-func (booking booking) GetGroupSize() int64 {
+func (booking BaseBooking) GetGroupSize() int64 {
 	return booking.GroupSize
 }
 
-func (booking booking) GetUserID() int64 {
+func (booking BaseBooking) GetUserID() int64 {
 	return booking.UserIdPublicKey
 }
 
-func (booking booking) GetBookingType() string {
+func (booking BaseBooking) GetBookingType() string {
 	return BookingType[booking.BookingType]
 }
 
-func (booking booking) ToString() string {
+func (booking BaseBooking) ToString() string {
 	eventBuilder := new(strings.Builder)
 	var eventsLabel string
 
@@ -78,8 +78,8 @@ func (booking booking) ToString() string {
 	)
 }
 
-func InitBooking(Id int64, UserIdPublicKey int64, GroupSize int64, bookingType bookingType, EventIds []int64) booking {
-	booking := new(booking)
+func InitBooking(Id int64, UserIdPublicKey int64, GroupSize int64, bookingType bookingType, EventIds []int64) BaseBooking {
+	booking := new(BaseBooking)
 	booking.Id = Id
 	booking.UserIdPublicKey = UserIdPublicKey
 	booking.GroupSize = GroupSize
@@ -88,6 +88,6 @@ func InitBooking(Id int64, UserIdPublicKey int64, GroupSize int64, bookingType b
 	return *booking
 }
 
-func (booking booking) GetEventIds() []int64 {
+func (booking BaseBooking) GetEventIds() []int64 {
 	return booking.EventIds
 }
