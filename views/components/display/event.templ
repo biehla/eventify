@@ -1,0 +1,155 @@
+package components
+
+import (
+    "eventify/models"
+    // "eventify/database"
+    "strings"
+    "fmt"
+)
+
+templ FormatEvent(event models.Event) {
+	<div class="flex items-center justify-between w-full">
+		<h1 class="text-2xl font-bold  text-center">{ event.GetTitle() }</h1>
+		<a class="flex items-center justify-center w-8 h-8 rounded-full
+			hover:ring-gray-200 hover:ring-2 hover:bg-gray-100 focus:ring-2 
+			focus:ring-gray-300 focus:bg-gray-200 
+			active:ring-gray-300 active:bg-gray-200 
+			transition duration-200"
+			hx-target="#hx-frame"
+			hx-on:click="history.back();"
+			hx-swap="outerHTML"
+			href="../"
+		>
+			<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+			</svg>
+		</a>
+	</div>
+	<h2 class="text-2xl font-italic mb-6" style="display: inline-block">{ event.GetSubtitle() }</h2>
+	<div class="space-y-4">
+		<div class="flex justify-between">
+			<span class="text-gray-600 font-medium">Location Name:</span>
+			<span class="text-gray-800">{ event.GetLocationName() }</span>
+		</div>
+		<div class="flex justify-between">
+			<span class="text-gray-600 font-medium">Coordinates:</span>
+			<span class="text-gray-800">
+				({ fmt.Sprint(event.GetLocationCoords()[0]) },
+				{ fmt.Sprint(event.GetLocationCoords()[1]) })
+			</span>
+		</div>
+		<div class="flex justify-between">
+			<span class="text-gray-600 font-medium">Bookings:</span>
+			<span class="text-gray-800">
+				{ fmt.Sprint(event.GetBookings()) } /
+				{ fmt.Sprint(event.GetCapacity()) }
+			</span>
+		</div>
+		<!-- Progress Bar for Bookings -->
+		<div class="flex items-center">
+			<div class="w-full bg-gray-200 rounded-full h-2.5">
+				<div class={ "bg-blue-600 h-2.5 rounded-full", progressBar(event) }></div>
+			</div>
+			<span class="ml-2 text-sm text-gray-600"></span>
+		</div>
+		<!-- Sponsored Badge -->
+		if event.GetSponsored() {
+			<div class="flex justify-between">
+				<span class="text-gray-600 font-medium">Sponsored:</span>
+				<span class="text-gray-800">Yes</span>
+			</div>
+		}
+		<div class="flex justify-between">
+			<span class="font-semibold text-gray-600">Tags:</span>
+		</div>
+		<div>
+			for _, tag := range strings.Split(event.GetTags(), ",") {
+				<span class="bg-gray-200 text-gray-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">{ tag }</span>
+			}
+		</div>
+	</div>
+}
+
+css progressBar(event models.Event) {
+	width: { event.GetPercentBooked() };
+}
+
+
+templ EditEvent(event models.Event) {
+    <form 
+        action={ templ.SafeURL(fmt.Sprintf("/events/edit/%d/", event.GetId())) } 
+        method="post"
+        hx-post={ fmt.Sprintf("/event/edit/%d", event.GetId()) }
+        hx-push-url={ fmt.Sprintf("/event/edit/%d", event.GetId()) }
+    >
+        <div class="flex items-center justify-between w-full">
+            <input type="text" class="text-2xl font-bold border border-gray-300 rounded p-2" value={ event.GetTitle() } name="Title"/>
+            <a class="flex items-center justify-center w-8 h-8 rounded-full
+                hover:ring-gray-200 hover:ring-2 hover:bg-gray-100 focus:ring-2 
+                focus:ring-gray-300 focus:bg-gray-200 
+                active:ring-gray-300 active:bg-gray-200 
+                transition duration-200"
+                hx-target="#hx-frame"
+                hx-on:click="history.back();"
+                hx-swap="outerHTML"
+                href="../"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </a>
+        </div>
+        <input type="text" class="text-2xl font-italic mb-6 border border-gray-300 rounded p-2" value={ event.GetSubtitle() } style="display: inline-block" name="Subtitle" />
+        <div class="space-y-4">
+            <div class="flex justify-between">
+                <span class="text-gray-600 font-medium">Location Name:</span>
+                <input type="text" class="text-gray-800 border border-gray-300 rounded p-2" value={ event.GetLocationName() } name="LocationName" />
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600 font-medium">Coordinates:</span>
+                <span class="text-gray-800">
+                    <input type="text" class="border border-gray-300 rounded p-2 inline-block" value={ fmt.Sprint(event.GetLocationCoords()[0]) } name="LocationCoords[]" />
+                    <input type="text" class="border border-gray-300 rounded p-2 inline-block" value={ fmt.Sprint(event.GetLocationCoords()[1]) } name="LocationCoords[]" />
+                </span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600 font-medium">Available spots:</span>
+                <span class="text-gray-800">
+                    <input type="text" class="border border-gray-300 rounded p-2" value={ fmt.Sprint(event.GetBookings()) } name="Bookings" />
+                </span>
+            </div>
+            <!-- Progress Bar for Bookings -->
+            <div class="flex items-center">
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div class={ "bg-blue-600 h-2.5 rounded-full", progressBar(event) }></div>
+                </div>
+                <span class="ml-2 text-sm text-gray-600"></span>
+            </div>
+            <!-- Sponsored Badge -->
+            if event.GetSponsored() {
+                <div class="flex justify-between">
+                    <span class="text-gray-600 font-medium">Sponsored:</span>
+                    <span class="text-gray-800">Yes</span>
+                </div>
+            }
+            <div class="flex justify-between">
+                <span class="font-semibold text-gray-600">Tags:</span>
+            </div>
+            <div>
+                for _, tag := range strings.Split(event.GetTags(), ",") {
+                    <input type="text" class="bg-gray-200 text-gray-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded" value={ tag } name="Tag" />
+                }
+            </div>
+        </div>
+        <button type="submit"
+            class="text-sm px-5 py-2.5 text-white
+            bg-blue-700 hover:bg-blue-800 focus:ring-4 
+            focus:ring-blue-400 rounded-lg dark:bg-blue-600 
+            dark:hover:bg-blue-700 focus:outline-none 
+            dark:focus:ring-blue-800"
+            hx-confirm="Are you sure you want to save changes?"
+        >
+            Save
+        </button>
+    </form>
+}

@@ -2,8 +2,10 @@ package main
 
 import (
 	"eventify/database"
+	"eventify/main/routes"
 	"eventify/models"
 	"eventify/views"
+	components "eventify/views/components/display"
 
 	"slices"
 	"strconv"
@@ -27,6 +29,8 @@ func main() {
 		return handler(c)
 	})
 
+	routes.EventRouter(app)
+
 	app.Get("/booking/:bookingId", func(c *fiber.Ctx) error {
 		if c.Params("bookingId") != "" {
 			bookingId, err := strconv.ParseInt(c.Params("bookingId"), 10, 64)
@@ -39,29 +43,9 @@ func main() {
 			if c.Context().Referer() != nil {
 				view = views.GetOuterHtml[models.Booking](booking, "Event: "+c.Params("bookingId"))
 			} else if slices.Equal(c.Context().Referer(), []byte("/")) {
-
+				view = components.FormatBooking(booking)
 			} else {
-				view = views.FormatBooking(booking)
-			}
-			handler := adaptor.HTTPHandler(templ.Handler(view))
-
-			return handler(c)
-		}
-		return c.SendString("Invalid booking ID")
-	})
-
-	app.Get("/event/:eventId", func(c *fiber.Ctx) error {
-		if c.Params("eventId") != "" {
-			eventId, err := strconv.ParseInt(c.Params("eventId"), 10, 64)
-			if err != nil {
-				return c.SendString("Invalid booking ID")
-			}
-			event := database.GetEvent(eventId)
-			var view templ.Component
-			if c.Context().Referer() != nil {
-				view = views.FormatEvent(event)
-			} else {
-				view = views.GetOuterHtml[models.Event](event, "Event: "+c.Params("eventId"))
+				view = components.FormatBooking(booking)
 			}
 			handler := adaptor.HTTPHandler(templ.Handler(view))
 

@@ -1,0 +1,66 @@
+package components
+
+import (
+    "eventify/models"
+    "fmt"
+    "eventify/database"
+)
+
+// Booking is a component that represents a booking.
+templ FormatBooking(booking models.Booking) {
+	<div class="flex items-center justify-between w-full">
+		<h1 class="text-2xl font-bold mb-6">Booking Details</h1>
+		<a class="flex items-center justify-center w-8 h-8 rounded-full
+				hover:ring-orange-200 hover:ring-2 hover:bg-orange-100 focus:ring-2 
+				focus:ring-orange-300 focus:bg-orange-200 
+				active:ring-orange-300 active:bg-orange-200 
+				transition duration-200"
+			hx-target="#hx-frame"
+			hx-post="/"
+			hx-push-url="/"
+			hx-swap="outerHTML"
+		>
+			<img src="/img/edit-1-svgrepo-com.svg" class="p-1" alt="edit">
+		</a>
+	</div>
+	<div class="space-y-4">
+		<div class="flex justify-between">
+			<span class="text-gray-600 font-medium">ID:</span>
+			<span class="text-gray-800">{ fmt.Sprint(booking.GetId()) }</span>
+		</div>
+		<div class="flex justify-between">
+			<span class="text-gray-600 font-medium">User ID Public Key:</span>
+			<span class="text-gray-800">{ fmt.Sprint(booking.GetUserID()) }</span>
+		</div>
+		<div class="flex justify-between">
+			<span class="text-gray-600 font-medium">Group Size:</span>
+			<span class="text-gray-800">{ fmt.Sprint(booking.GetGroupSize()) }</span>
+		</div>
+		<div class="flex justify-between">
+			<span class="text-gray-600 font-medium">Booking Type:</span>
+			<span class="text-gray-800">{ fmt.Sprint(booking.GetBookingType()) }</span>
+		</div>
+		<div>
+			<span class="text-gray-600 font-medium">Event IDs:</span>
+			<ul class="list-disc list-inside text-gray-800 mt-2">
+				for _, item := range booking.GetEventIds() {
+					<li class="py-2.5">
+						<a
+							class="text-sm px-5 py-2.5 text-white
+                                bg-blue-700 hover:bg-blue-800 focus:ring-4 
+                                focus:ring-blue-400 rounded-lg dark:bg-blue-600 
+                                dark:hover:bg-blue-700 focus:outline-none 
+                                dark:focus:ring-blue-800"
+							hx-get={ fmt.Sprintf("/event/%d", item) }
+							hx-push-url={ fmt.Sprintf("/event/%d", item) }
+							href={ templ.SafeURL(fmt.Sprintf("/event/%d", item)) }
+							hx-target="#hx-frame"
+						>
+							{ database.GetEvent(item).GetTitle() }
+						</a>
+					</li>
+				}
+			</ul>
+		</div>
+	</div>
+}

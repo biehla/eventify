@@ -146,5 +146,5 @@ func (events eventsArray) GetEvent(id int64) models.Event {
 
 func (events eventsArray) SetEvent(id int, newEvent models.Event) bool {
 	events[id] = newEvent
-	return true // TODO: at some point make this do some validation or write a validation function
+	return false // TODO: at some point make this do some validation or write a validation function
 }
